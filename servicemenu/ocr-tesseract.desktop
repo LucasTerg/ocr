@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Service
 ServiceTypes=KonqPopupMenu/Plugin
-MimeType=image/png;image/jpeg;image/jpg;image/tiff;image/bmp;image/webp;image/gif;image/x-portable-pixmap;image/x-xbitmap;image/x-xpixmap;image/x-tga;image/x-icb;image/x-vst;image/x-vda;image/x-win-bitmap;image/x-pcx;image/x-pict;image/x-portable-anymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-sun-raster;image/x-xcf;image/svg+xml;application/pdf;
+MimeType=image/png;image/jpeg;image/jpg;image/tiff;image/bmp;image/webp;image/gif;image/x-portable-pixmap;image/x-xbitmap;image/x-xpixmap;image/x-tga;image/x-icb;image/x-vst;image/x-vda;image/x-win-bitmap;image/x-pcx;image/x-pict;image/x-portable-anymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-sun-raster;image/x-xcf;image/vnd.adobe.photoshop;image/svg+xml;application/pdf;
 Actions=ocrFile;ocrFileToFile;ocrFileCopy;ocrFileCopyPol;ocrFileClipboard;ocrFileShow;
 
 Name=Tesseract OCR

@@ -2,22 +2,34 @@
 
 Narzędzie do optycznego rozpoznawania tekstu (OCR) z integracją z menu kontekstowym KDE Dolphin na SteamOS.
 
-## ✨ Funkcje
+## ✨ Możliwości
 
-- **OCR z pliku** - kliknij prawym na obrazek → rozpoznaj tekst
-- **OCR z regionu** - zaznacz obszar ekranu → tekst w schowku
-- **OCR ze schowka** - skopiuj obraz → rozpoznaj tekst
-- **Wsparcie dla języków** - polski, angielski (łatwo dodać więcej)
-- **Preprocessing obrazu** - automatyczne ulepszanie przed OCR
-- **Powiadomienia** - notyfikacje systemowe o wyniku
-- **Wiele formatów** - PNG, JPG, TIFF, BMP, WebP, GIF, PDF i inne
+| Funkcja | Opis |
+|---|---|
+| 🖼️ **OCR z pliku** | Kliknij prawym na obrazek → rozpoznaj tekst |
+| 📐 **OCR z zaznaczonego obszaru** | Zaznacz dowolny prostokąt na ekranie → tekst w schowku |
+| 📋 **OCR ze schowka** | Skopiuj obraz → rozpoznaj tekst bez zapisywania |
+| 🌐 **Wybór języka** | Polski, angielski, lub oba naraz |
+| 🔧 **Preprocessing** | Automatyczne ulepszanie obrazu przed OCR |
+| 🔔 **Powiadomienia** | Notyfikacje systemowe z wynikiem |
+
+### Obsługiwane formaty plików
+
+| Format | Rozszerzenia |
+|---|---|
+| 📷 Obrazy | PNG, JPG, JPEG, TIFF, BMP, WebP, GIF |
+| 🎨 Grafika warstwowa | **PSD** (Photoshop), **XCF** (GIMP) |
+| 📄 Dokumenty | **PDF** |
+| Inne | SVG, TGA, PCX, PPM, PGM, PBM, PNM, XBM, XPM, Sun Raster |
+
+> **Jak to działa:** ImageMagick konwertuje PSD/XCF/PDF do płaskiego obrazu, a Tesseract OCR rozpoznaje tekst.
 
 ## 📦 Wymagania
 
 - SteamOS / KDE Plasma 6
 - Homebrew (Linuxbrew) - [https://brew.sh/](https://brew.sh/)
-- Tesseract (instalowany automatycznie)
-- ImageMagick (instalowany automatycznie)
+- Tesseract (instalowany automatycznie przez `install.sh`)
+- ImageMagick (instalowany automatycznie przez `install.sh`)
 
 ## 🚀 Instalacja
 
@@ -37,41 +49,51 @@ dolphin &
 
 ## 🖱️ Użycie
 
-### Z menu kontekstowego Dolphin
+### Menu kontekstowe w Dolphinie
 
-1. Kliknij **prawym przyciskiem myszy** na obrazek
-2. Wybierz **Tesseract OCR**
-3. Wybierz akcję:
-   - **OCR - rozpoznaj tekst (do schowka)** - domyślnie polski+angielski
-   - **OCR - rozpoznaj i zapisz do pliku** - zapisuje jako `nazwa.png.txt`
-   - **OCR - rozpoznaj i kopiuj (angielski)** - tylko angielski
-   - **OCR - otwórz w edytorze** - rozpoznaje i otwiera w Kate
+Kliknij **prawym przyciskiem myszy** na plik (obrazek, PSD, XCF, PDF) → **Tesseract OCR**:
 
-### Z pulpitu / dowolnego miejsca
+| Opcja w menu | Działanie |
+|---|---|
+| **OCR - rozpoznaj tekst (do schowka)** | polski+angielski, kopiuje do schowka |
+| **OCR - rozpoznaj i kopiuj (polski)** | tylko polski, kopiuje do schowka |
+| **OCR - rozpoznaj i kopiuj (angielski)** | tylko angielski, kopiuje do schowka |
+| **OCR - rozpoznaj tekst i zapisz do pliku...** | zapisuje jako `nazwapliku.txt` obok oryginału |
+| **OCR - otwórz w edytorze** | rozpoznaje i otwiera wynik w Kate |
+| **OCR z obrazu w schowku** | bierze obraz ze schowka i rozpoznaje tekst |
 
-1. Kliknij **prawym** na pulpicie
-2. Wybierz **Tesseract OCR - Region**
-3. Wybierz **OCR - zaznacz obszar ekranu**
-4. Zaznacz prostokąt na ekranie
-5. Tekst automatycznie w schowku! 🎉
+### Zaznaczanie obszaru ekranu
+
+1. Kliknij **prawym** na pulpicie (albo w dowolnym folderze)
+2. Wybierz **Tesseract OCR - Region** → **OCR - zaznacz obszar ekranu**
+3. Kursor zmieni się w krzyżyk – **zaznacz prostokąt** na ekranie
+4. Tekst automatycznie w schowku! 🎉
 
 ### Z terminala
 
 ```bash
-# Zaznacz region
+# Zaznacz obszar ekranu
 tesseract-ocr.sh --region
 
-# OCR z pliku
+# OCR z pliku (dowolny format: PNG, JPG, PSD, XCF, PDF...)
 tesseract-ocr.sh --file skan.png
+tesseract-ocr.sh --file projekt.psd
+tesseract-ocr.sh --file grafikaxcf.xcf
+tesseract-ocr.sh --file dokument.pdf
 
 # OCR z obrazu w schowku
 tesseract-ocr.sh --clipboard
 
-# Zmiana języka
-tesseract-ocr.sh --file skan.png --lang eng
+# Wybór języka
+tesseract-ocr.sh --file skan.png --lang eng       # tylko angielski
+tesseract-ocr.sh --file skan.png --lang pol        # tylko polski
+tesseract-ocr.sh --file skan.png --lang pol+eng    # polski i angielski (domyślnie)
 
 # Zapisz do pliku
 tesseract-ocr.sh --file skan.png --output wynik.txt
+
+# Bez kopiowania do schowka
+tesseract-ocr.sh --file skan.png --no-copy
 
 # Pomoc
 tesseract-ocr.sh --help
@@ -105,22 +127,23 @@ brew uninstall tesseract
 
 ```
 tesseract-ocr-kde/
-├── install.sh              # Skrypt instalacyjny
-├── README.md               # Ta dokumentacja
+├── install.sh                 # Skrypt instalacyjny
+├── README.md                  # Ta dokumentacja
 ├── bin/
-│   └── tesseract-ocr.sh    # Główny skrypt OCR
+│   └── tesseract-ocr.sh       # Główny skrypt OCR
 ├── servicemenu/
-│   ├── ocr-tesseract.desktop       # Menu dla plików
-│   └── ocr-tesseract-region.desktop # Menu dla regionu/pulpitu
+│   ├── ocr-tesseract.desktop          # Menu dla plików
+│   └── ocr-tesseract-region.desktop   # Menu dla regionu/pulpitu
 └── icons/
-    └── ocr-tesseract.svg   # Ikona
+    └── ocr-tesseract.svg      # Ikona
 ```
 
-## 🔧 Działanie
+## 🔧 Jak to działa
 
-1. Obraz jest przetwarzany przez ImageMagick (skala szarości, wyostrzenie, normalizacja)
-2. Tesseract OCR rozpoznaje tekst w wybranym języku
-3. Wynik jest kopiowany do schowka i wyświetlany
+1. ImageMagick konwertuje plik do PNG (dla PSD/XCF/PDF wyciąga pierwszą warstwę/stronę)
+2. Obraz jest ulepszany: skala szarości, wyostrzenie, normalizacja, deskew
+3. Tesseract OCR rozpoznaje tekst w wybranym języku
+4. Wynik trafia do schowka i/lub pliku
 
 ## 📝 Licencja
 
