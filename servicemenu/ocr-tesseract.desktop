@@ -14,7 +14,7 @@ Icon=ocr-tesseract
 Name=OCR - zaznacz obszar ekranu
 Name[pl]=OCR - zaznacz obszar ekranu
 Icon=camera-photo
-Exec=/home/deck/.local/bin/tesseract-ocr.sh --region
+Exec=konsole --hold -e /home/deck/.local/bin/tesseract-ocr.sh --region
 
 [Desktop Action ocrFile]
 Name=OCR - rozpoznaj tekst (polski+angielski)
