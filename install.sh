@@ -112,8 +112,10 @@ mkdir -p "$BIN_DIR"
 
 # Kopiuj skrypt
 cp "$PROJECT_DIR/bin/tesseract-ocr.sh" "$BIN_DIR/tesseract-ocr.sh"
+cp "$PROJECT_DIR/bin/tesseract-ocr-wrapper.sh" "$BIN_DIR/tesseract-ocr-wrapper.sh"
 chmod +x "$BIN_DIR/tesseract-ocr.sh"
-ok "Skrypt zainstalowany: $BIN_DIR/tesseract-ocr.sh"
+chmod +x "$BIN_DIR/tesseract-ocr-wrapper.sh"
+ok "Skrypty zainstalowane: $BIN_DIR/tesseract-ocr.sh, $BIN_DIR/tesseract-ocr-wrapper.sh"
 
 # Dodaj do PATH jeśli nie ma
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
