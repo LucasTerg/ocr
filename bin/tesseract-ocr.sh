@@ -305,28 +305,29 @@ fi
 
 case "$MODE" in
     "region")
-        # Tryb regionu - użyj Spectacle do zaznaczenia obszaru
+        # Tryb regionu - zaznacz obszar ekranu myszką
         notify "🖼️ OCR" "Zaznacz obszar do rozpoznania tekstu..." "camera-photo"
         
-        REGION_FILE="${TEMP_DIR}/region_$$.png"
+        REGION_FILE="${TEMP_DIR}/region_$.png"
         
-        # Użyj Spectacle w trybie regionu (bez GUI, zapisz do pliku)
-        if command -v spectacle &>/dev/null; then
-            spectacle --region --background --nonotify --output "$REGION_FILE" 2>/dev/null || {
-                # Jeśli Spectacle nie zadziałał w tle, spróbuj z GUI
-                spectacle --region --output "$REGION_FILE" 2>/dev/null
-            }
+        # 1. import (ImageMagick) - najlepsze: pokazuje krzyżyk, czeka na kliknięcie
+        if command -v import &>/dev/null; then
+            import "$REGION_FILE" 2>/dev/null
+        # 2. spectacle - interaktywne GUI do zaznaczania regionu
+        elif command -v spectacle &>/dev/null; then
+            spectacle --region --output "$REGION_FILE" 2>/dev/null
+        # 3. grim + slurp (dla Wayland/compositor)
         elif command -v grim &>/dev/null && command -v slurp &>/dev/null; then
             grim -g "$(slurp)" "$REGION_FILE"
         else
-            error_exit "Brak narzędzia do wyboru regionu. Zainstaluj Spectacle."
+            error_exit "Brak narzędzia do wyboru regionu."
         fi
         
         if [ ! -s "$REGION_FILE" ]; then
             error_exit "Nie wybrano regionu lub zrzut jest pusty."
         fi
         
-        RESULT_FILE=$(run_ocr "$REGION_FILE" "${TEMP_DIR}/result_$$")
+        RESULT_FILE=$(run_ocr "$REGION_FILE" "${TEMP_DIR}/result_$")
         rm -f "$REGION_FILE"
         ;;
         
