@@ -358,30 +358,9 @@ fi
 
 case "$MODE" in
     "region")
-        # Tryb regionu - zaznacz obszar ekranu myszką
-        notify "🖼️ OCR" "Zaznacz obszar do rozpoznania tekstu..." "camera-photo"
-        
-        REGION_FILE="${TEMP_DIR}/region_$$.png"
-        
-        # 1. spectacle - interaktywne GUI do zaznaczania regionu (działa na SteamOS)
-        if command -v spectacle &>/dev/null; then
-            spectacle --region --output "$REGION_FILE" 2>/dev/null
-        # 2. import (ImageMagick) - pokazuje krzyżyk, czeka na kliknięcie
-        elif command -v import &>/dev/null; then
-            import "$REGION_FILE" 2>/dev/null
-        # 3. grim + slurp (dla Wayland/compositor)
-        elif command -v grim &>/dev/null && command -v slurp &>/dev/null; then
-            grim -g "$(slurp)" "$REGION_FILE"
-        else
-            error_exit "Brak narzędzia do wyboru regionu."
-        fi
-        
-        if [ ! -s "$REGION_FILE" ]; then
-            error_exit "Nie wybrano regionu lub zrzut jest pusty."
-        fi
-        
-        RESULT_FILE=$(run_ocr "$REGION_FILE" "${TEMP_DIR}/result_$")
-        rm -f "$REGION_FILE"
+        # Deleguj do ocr-region.sh (sam ustawia env, używa import + kdialog)
+        SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+        exec "$SCRIPT_DIR/ocr-region.sh"
         ;;
         
     "file")
