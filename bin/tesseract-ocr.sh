@@ -336,15 +336,17 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            # Jeśli podano ścieżkę bez --file, potraktuj jako plik
-            if [ -f "$1" ]; then
-                MODE="file"
-                FILE_PATH="$1"
+            # Jeśli argument nie zaczyna się od --, KDE mogło pominąć --file
+            # i rozbić ścieżkę na wiele argumentów. Sklej wszystko w jedną ścieżkę.
+            joined="$1"
+            shift
+            while [[ $# -gt 0 ]] && [[ "$1" != --* ]]; do
+                joined="$joined $1"
                 shift
-            else
-                echo "Nieznana opcja: $1"
-                show_help
-            fi
+            done
+            # Zawsze traktuj jako plik (run_ocr sprawdzi czy istnieje)
+            MODE="file"
+            FILE_PATH="$joined"
             ;;
     esac
 done
