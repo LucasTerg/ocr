@@ -131,7 +131,9 @@ mkdir -p "$SERVICEMENU_DIR"
 
 # Kopiuj pliki .desktop i ustaw uprawnienia wykonywalne
 cp "$PROJECT_DIR/servicemenu/ocr-tesseract.desktop" "$SERVICEMENU_DIR/"
+cp "$PROJECT_DIR/servicemenu/ocr-tesseract-anywhere.desktop" "$SERVICEMENU_DIR/"
 chmod +x "$SERVICEMENU_DIR/ocr-tesseract.desktop"
+chmod +x "$SERVICEMENU_DIR/ocr-tesseract-anywhere.desktop"
 ok "ServiceMenu zainstalowane w: $SERVICEMENU_DIR"
 
 # --- Krok 5: Instalacja launcher'a w menu aplikacji ---
