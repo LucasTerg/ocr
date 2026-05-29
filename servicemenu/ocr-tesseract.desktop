@@ -1,0 +1,41 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=KonqPopupMenu/Plugin
+MimeType=image/png;image/jpeg;image/jpg;image/tiff;image/bmp;image/webp;image/gif;image/x-portable-pixmap;image/x-xbitmap;image/x-xpixmap;image/x-tga;image/x-icb;image/x-vst;image/x-vda;image/x-win-bitmap;image/x-pcx;image/x-pict;image/x-portable-anymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-sun-raster;image/x-xcf;image/svg+xml;application/pdf;
+Actions=ocrFile;ocrFileToFile;ocrFileCopy;ocrFileClipboard;ocrFileShow;
+
+Name=Tesseract OCR
+Name[pl]=Tesseract OCR
+Comment=Recognize text from image using Tesseract OCR
+Comment[pl]=Rozpoznaj tekst z obrazu za pomocą Tesseract OCR
+Icon=ocr-tesseract
+
+[Desktop Action ocrFile]
+Name=OCR - rozpoznaj tekst (do schowka)
+Name[pl]=OCR - rozpoznaj tekst (do schowka)
+Icon=edit-paste
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --copy
+
+[Desktop Action ocrFileToFile]
+Name=OCR - rozpoznaj tekst i zapisz do pliku...
+Name[pl]=OCR - rozpoznaj tekst i zapisz do pliku...
+Icon=document-save
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --no-copy --output %f.txt
+
+[Desktop Action ocrFileCopy]
+Name=OCR - rozpoznaj i kopiuj (angielski)
+Name[pl]=OCR - rozpoznaj i kopiuj (angielski)
+Icon=edit-paste
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --lang eng --copy
+
+[Desktop Action ocrFileClipboard]
+Name=OCR z obrazu w schowku
+Name[pl]=OCR z obrazu w schowku
+Icon=edit-paste
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --clipboard
+
+[Desktop Action ocrFileShow]
+Name=OCR - otwórz w edytorze
+Name[pl]=OCR - otwórz w edytorze
+Icon=accessories-text-editor
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --no-copy --output %f.txt && kate %f.txt

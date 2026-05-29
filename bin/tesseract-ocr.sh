@@ -1,0 +1,327 @@
+#!/bin/bash
+#===============================================================================
+# Tesseract OCR - skrypt do optycznego rozpoznawania tekstu
+# Dla KDE Plasma (SteamOS) - menu kontekstowe
+#===============================================================================
+# Użycie:
+#   Zaznacz region:  tesseract-ocr.sh --region
+#   OCR z pliku:     tesseract-ocr.sh --file /ścieżka/do/obrazka.png
+#   OCR z schowka:   tesseract-ocr.sh --clipboard
+#   Pomoc:           tesseract-ocr.sh --help
+#===============================================================================
+
+set -euo pipefail
+
+# --- Konfiguracja -----------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Język OCR (domyślnie polski + angielski)
+OCR_LANG="${OCR_LANG:-pol+eng}"
+
+# Katalog tymczasowy
+TEMP_DIR="${TEMP_DIR:-/tmp/tesseract-ocr}"
+mkdir -p "$TEMP_DIR"
+
+# Plik wyjściowy
+OUTPUT_FILE=""
+
+# --- Funkcje pomocnicze -----------------------------------------------------
+
+notify() {
+    local title="$1"
+    local message="$2"
+    local icon="${3:-dialog-information}"
+    notify-send "$title" "$message" --icon="$icon" 2>/dev/null || true
+}
+
+error_exit() {
+    local message="$1"
+    notify "❌ Błąd OCR" "$message" "dialog-error"
+    echo "ERROR: $message" >&2
+    exit 1
+}
+
+show_help() {
+    cat <<EOF
+Tesseract OCR - narzędzie do rozpoznawania tekstu z obrazów
+
+OPCJE:
+  --region             Zaznacz obszar ekranu i wykonaj OCR
+  --file <ścieżka>     Wykonaj OCR z pliku graficznego
+  --clipboard          Wykonaj OCR z obrazu w schowku
+  --output <ścieżka>   Zapisz wynik do pliku (opcjonalnie)
+  --lang <język>       Ustaw język OCR (domyślnie: pol+eng)
+  --copy               Kopiuj wynik do schowka (domyślnie)
+  --no-copy            Nie kopiuj do schowka
+  --help               Wyświetl tę pomoc
+
+PRZYKŁADY:
+  $0 --region
+  $0 --file ~/Obrazy/skan.png
+  $0 --clipboard --lang eng
+
+JĘZYKI:
+  Aby sprawdzić dostępne języki: tesseract --list-langs
+  Aby zainstalować więcej: brew install tesseract-lang
+EOF
+    exit 0
+}
+
+copy_to_clipboard() {
+    local text="$1"
+    # Próbujemy różne narzędzia do schowka
+    if command -v wl-copy &>/dev/null; then
+        echo -n "$text" | wl-copy 2>/dev/null && return 0
+    fi
+    if command -v xclip &>/dev/null; then
+        echo -n "$text" | xclip -selection clipboard 2>/dev/null && return 0
+    fi
+    if command -v xsel &>/dev/null; then
+        echo -n "$text" | xsel --clipboard --input 2>/dev/null && return 0
+    fi
+    # KDE way
+    if command -v qdbus &>/dev/null; then
+        echo -n "$text" | qdbus org.kde.klipper /klipper setClipboardContents 2>/dev/null && return 0
+    fi
+    return 1
+}
+
+get_clipboard_image() {
+    # Próbuje pobrać obraz ze schowka i zapisać do pliku
+    local output_file="$1"
+    
+    if command -v wl-paste &>/dev/null; then
+        wl-paste --type image/png 2>/dev/null > "$output_file" && return 0
+    fi
+    if command -v xclip &>/dev/null; then
+        xclip -selection clipboard -t image/png -o 2>/dev/null > "$output_file" && return 0
+    fi
+    # KDE - użyj qdbus
+    if command -v qdbus &>/dev/null; then
+        qdbus org.kde.klipper /klipper getClipboardContents 2>/dev/null | base64 -d 2>/dev/null > "$output_file" && return 0
+    fi
+    return 1
+}
+
+run_ocr() {
+    local image_file="$1"
+    local output_base="$2"
+    local lang="${3:-$OCR_LANG}"
+    
+    # Sprawdź czy plik istnieje i nie jest pusty
+    if [ ! -s "$image_file" ]; then
+        error_exit "Plik obrazu jest pusty lub nie istnieje: $image_file"
+    fi
+    
+    # Sprawdź czy to obraz
+    local mime_type
+    mime_type=$(file --mime-type -b "$image_file" 2>/dev/null || echo "unknown")
+    if [[ "$mime_type" != image/* ]]; then
+        error_exit "Plik nie jest obrazem (MIME: $mime_type): $image_file"
+    fi
+    
+    # Konwertuj do formatu akceptowalnego przez Tesseract (PNG, 300 DPI)
+    local processed_image="${TEMP_DIR}/processed_$$.png"
+    
+    # Użyj ImageMagick do preprocessing
+    magick "$image_file" \
+        -density 300 \
+        -colorspace Gray \
+        -sharpen 0x1 \
+        -normalize \
+        -deskew 40% \
+        -resize "200%>" \
+        "$processed_image" 2>/dev/null || {
+        # Fallback: prostsza konwersja
+        magick "$image_file" -density 300 "$processed_image" 2>/dev/null || \
+        cp "$image_file" "$processed_image"
+    }
+    
+    # Uruchom Tesseract
+    echo "🔍 Rozpoznawanie tekstu (język: $lang)..." >&2
+    tesseract "$processed_image" "$output_base" -l "$lang" 2>/dev/null || {
+        # Próbuj bez preprocessingu
+        echo "⚠️  Próbuję bez preprocessingu..." >&2
+        tesseract "$image_file" "$output_base" -l "$lang" 2>/dev/null || error_exit "Tesseract nie mógł rozpoznać tekstu."
+    }
+    
+    # Wyczyść
+    rm -f "$processed_image"
+    
+    # Zwróć ścieżkę do wyniku
+    echo "${output_base}.txt"
+}
+
+# --- Główna logika ----------------------------------------------------------
+
+# Domyślne zachowanie
+DO_COPY=true
+MODE=""
+FILE_PATH=""
+
+# Parsuj argumenty
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --help|-h)
+            show_help
+            ;;
+        --region|-r)
+            MODE="region"
+            shift
+            ;;
+        --file|-f)
+            MODE="file"
+            FILE_PATH="$2"
+            shift 2
+            ;;
+        --clipboard|-c)
+            MODE="clipboard"
+            shift
+            ;;
+        --output|-o)
+            OUTPUT_FILE="$2"
+            shift 2
+            ;;
+        --lang|-l)
+            OCR_LANG="$2"
+            shift 2
+            ;;
+        --copy)
+            DO_COPY=true
+            shift
+            ;;
+        --no-copy)
+            DO_COPY=false
+            shift
+            ;;
+        *)
+            # Jeśli podano ścieżkę bez --file, potraktuj jako plik
+            if [ -f "$1" ]; then
+                MODE="file"
+                FILE_PATH="$1"
+                shift
+            else
+                echo "Nieznana opcja: $1"
+                show_help
+            fi
+            ;;
+    esac
+done
+
+# Jeśli nie podano trybu, pokaż pomoc
+if [ -z "$MODE" ]; then
+    show_help
+fi
+
+case "$MODE" in
+    "region")
+        # Tryb regionu - użyj Spectacle do zaznaczenia obszaru
+        notify "🖼️ OCR" "Zaznacz obszar do rozpoznania tekstu..." "camera-photo"
+        
+        REGION_FILE="${TEMP_DIR}/region_$$.png"
+        
+        # Użyj Spectacle w trybie regionu (bez GUI, zapisz do pliku)
+        if command -v spectacle &>/dev/null; then
+            spectacle --region --background --nonotify --output "$REGION_FILE" 2>/dev/null || {
+                # Jeśli Spectacle nie zadziałał w tle, spróbuj z GUI
+                spectacle --region --output "$REGION_FILE" 2>/dev/null
+            }
+        elif command -v grim &>/dev/null && command -v slurp &>/dev/null; then
+            grim -g "$(slurp)" "$REGION_FILE"
+        else
+            error_exit "Brak narzędzia do wyboru regionu. Zainstaluj Spectacle."
+        fi
+        
+        if [ ! -s "$REGION_FILE" ]; then
+            error_exit "Nie wybrano regionu lub zrzut jest pusty."
+        fi
+        
+        RESULT_FILE=$(run_ocr "$REGION_FILE" "${TEMP_DIR}/result_$$")
+        rm -f "$REGION_FILE"
+        ;;
+        
+    "file")
+        # Tryb pliku
+        if [ ! -f "$FILE_PATH" ]; then
+            error_exit "Plik nie istnieje: $FILE_PATH"
+        fi
+        
+        notify "🖼️ OCR" "Przetwarzanie: $(basename "$FILE_PATH")" "image-x-generic"
+        RESULT_FILE=$(run_ocr "$FILE_PATH" "${TEMP_DIR}/result_$$")
+        ;;
+        
+    "clipboard")
+        # Tryb schowka
+        notify "📋 OCR" "Pobieranie obrazu ze schowka..." "edit-paste"
+        
+        CLIP_FILE="${TEMP_DIR}/clipboard_$$.png"
+        if ! get_clipboard_image "$CLIP_FILE"; then
+            error_exit "Nie można pobrać obrazu ze schowka. Skopiuj obraz do schowka i spróbuj ponownie."
+        fi
+        
+        RESULT_FILE=$(run_ocr "$CLIP_FILE" "${TEMP_DIR}/result_$$")
+        rm -f "$CLIP_FILE"
+        ;;
+esac
+
+# Odczytaj wynik
+if [ ! -f "$RESULT_FILE" ]; then
+    error_exit "Nie udało się wygenerować pliku z wynikiem."
+fi
+
+RESULT_TEXT=$(cat "$RESULT_FILE")
+
+# Jeśli wynik jest pusty
+if [ -z "$(echo "$RESULT_TEXT" | tr -d '[:space:]')" ]; then
+    notify "⚠️ OCR" "Nie rozpoznano żadnego tekstu na obrazie." "dialog-warning"
+    rm -f "$RESULT_FILE"
+    exit 1
+fi
+
+# Zapisz do pliku jeśli podano
+if [ -n "$OUTPUT_FILE" ]; then
+    cp "$RESULT_FILE" "$OUTPUT_FILE"
+    notify "💾 OCR" "Zapisano do: $OUTPUT_FILE" "document-save"
+fi
+
+# Kopiuj do schowka
+if [ "$DO_COPY" = true ]; then
+    if copy_to_clipboard "$RESULT_TEXT"; then
+        notify "✅ OCR gotowe" "Tekst został skopiowany do schowka!" "edit-paste"
+    else
+        notify "✅ OCR gotowe" "Nie udało się skopiować do schowka, ale wynik jest w pliku." "dialog-information"
+    fi
+fi
+
+# Wyświetl wynik (w terminalu lub przez kdialog)
+if [ -t 1 ]; then
+    # Terminal dostępny
+    echo ""
+    echo "═══════════════════════════════════════════════"
+    echo "  ✅ ROZPOZNANY TEKST:"
+    echo "═══════════════════════════════════════════════"
+    echo "$RESULT_TEXT"
+    echo "═══════════════════════════════════════════════"
+    echo "Język: $OCR_LANG"
+    echo "Plik:  $RESULT_FILE"
+else
+    # Bez terminala - pokaż przez kdialog
+    if command -v kdialog &>/dev/null; then
+        # Ogranicz długość dla kdialog (max ~1000 znaków)
+        if [ ${#RESULT_TEXT} -gt 8000 ]; then
+            kdialog --title "✅ OCR - Rozpoznany tekst" \
+                --textbox "$RESULT_FILE" 800 600 2>/dev/null || true
+        else
+            kdialog --title "✅ OCR - Rozpoznany tekst" \
+                --msgbox "$RESULT_TEXT" 2>/dev/null || true
+        fi
+    fi
+fi
+
+# Usuń plik tymczasowy jeśli nie zapisaliśmy do outputu
+if [ -z "$OUTPUT_FILE" ]; then
+    rm -f "$RESULT_FILE"
+fi
+
+exit 0

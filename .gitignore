@@ -1,0 +1,16 @@
+# Tymczasowe pliki
+/tmp/
+*.tmp
+
+# Pliki wynikowe OCR
+*.txt
+
+# Systemowe
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Katalogi tymczasowe
+temp/

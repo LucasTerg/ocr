@@ -1,0 +1,23 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=KonqPopupMenu/Plugin
+MimeType=inode/directory;
+Actions=ocrRegion;ocrClipboard;
+
+Name=Tesseract OCR - Region
+Name[pl]=Tesseract OCR - Region
+Comment=Select screen region and recognize text
+Comment[pl]=Zaznacz obszar ekranu i rozpoznaj tekst
+Icon=ocr-tesseract
+
+[Desktop Action ocrRegion]
+Name=OCR - zaznacz obszar ekranu
+Name[pl]=OCR - zaznacz obszar ekranu
+Icon=camera-photo
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --region
+
+[Desktop Action ocrClipboard]
+Name=OCR z obrazu w schowku
+Name[pl]=OCR z obrazu w schowku
+Icon=edit-paste
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --clipboard
