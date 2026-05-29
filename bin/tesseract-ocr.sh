@@ -286,20 +286,46 @@ while [[ $# -gt 0 ]]; do
             ;;
         --file|-f)
             MODE="file"
-            FILE_PATH="$2"
-            shift 2
+            shift
+            # KDE servicemenu rozbija ścieżki ze spacjami na wiele argumentów
+            # Zbieraj wszystkie argumenty aż do następnej opcji (zaczynającej się od --)
+            FILE_PATH=""
+            while [[ $# -gt 0 ]] && [[ "$1" != --* ]]; do
+                if [ -z "$FILE_PATH" ]; then
+                    FILE_PATH="$1"
+                else
+                    FILE_PATH="$FILE_PATH $1"
+                fi
+                shift
+            done
             ;;
         --clipboard|-c)
             MODE="clipboard"
             shift
             ;;
         --output|-o)
-            OUTPUT_FILE="$2"
-            shift 2
+            shift
+            OUTPUT_FILE=""
+            while [[ $# -gt 0 ]] && [[ "$1" != --* ]]; do
+                if [ -z "$OUTPUT_FILE" ]; then
+                    OUTPUT_FILE="$1"
+                else
+                    OUTPUT_FILE="$OUTPUT_FILE $1"
+                fi
+                shift
+            done
             ;;
         --lang|-l)
-            OCR_LANG="$2"
-            shift 2
+            shift
+            OCR_LANG=""
+            while [[ $# -gt 0 ]] && [[ "$1" != --* ]]; do
+                if [ -z "$OCR_LANG" ]; then
+                    OCR_LANG="$1"
+                else
+                    OCR_LANG="$OCR_LANG $1"
+                fi
+                shift
+            done
             ;;
         --copy)
             DO_COPY=true
