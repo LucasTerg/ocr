@@ -12,6 +12,31 @@
 
 set -euo pipefail
 
+# Ustaw PATH z brew (ważne przy uruchomieniu z servicemenu KDE - brak pełnego env)
+BREW_PREFIX="/home/linuxbrew/.linuxbrew"
+if [ -d "$BREW_PREFIX/bin" ]; then
+    export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+fi
+export DISPLAY="${DISPLAY:-:0}"
+# Ścieżka do pliku autoryzacji X (potrzebne przy uruchomieniu z servicemenu)
+XAUTHORITY="${XAUTHORITY:-}"
+for xauth_path in "$XAUTHORITY" "/run/user/$(id -u)/xauth"* "/tmp/xauth"*; do
+    if [ -n "$xauth_path" ] && [ -f "$xauth_path" ] && [ -r "$xauth_path" ]; then
+        export XAUTHORITY="$xauth_path"
+        break
+    fi
+done
+# Sesja DBus (potrzebna dla Spectacle i innych aplikacji KDE)
+DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-}"
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
+    for dbus_path in "/run/user/$(id -u)/bus" "/run/user/$(id -u)/dbus"*; do
+        if [ -S "$dbus_path" ] 2>/dev/null; then
+            export DBUS_SESSION_BUS_ADDRESS="unix:path=$dbus_path"
+            break
+        fi
+    done
+fi
+
 # --- Konfiguracja -----------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
@@ -308,14 +333,14 @@ case "$MODE" in
         # Tryb regionu - zaznacz obszar ekranu myszką
         notify "🖼️ OCR" "Zaznacz obszar do rozpoznania tekstu..." "camera-photo"
         
-        REGION_FILE="${TEMP_DIR}/region_$.png"
+        REGION_FILE="${TEMP_DIR}/region_$$.png"
         
-        # 1. import (ImageMagick) - najlepsze: pokazuje krzyżyk, czeka na kliknięcie
-        if command -v import &>/dev/null; then
-            import "$REGION_FILE" 2>/dev/null
-        # 2. spectacle - interaktywne GUI do zaznaczania regionu
-        elif command -v spectacle &>/dev/null; then
+        # 1. spectacle - interaktywne GUI do zaznaczania regionu (działa na SteamOS)
+        if command -v spectacle &>/dev/null; then
             spectacle --region --output "$REGION_FILE" 2>/dev/null
+        # 2. import (ImageMagick) - pokazuje krzyżyk, czeka na kliknięcie
+        elif command -v import &>/dev/null; then
+            import "$REGION_FILE" 2>/dev/null
         # 3. grim + slurp (dla Wayland/compositor)
         elif command -v grim &>/dev/null && command -v slurp &>/dev/null; then
             grim -g "$(slurp)" "$REGION_FILE"
