@@ -2,7 +2,7 @@
 Type=Service
 ServiceTypes=KonqPopupMenu/Plugin
 MimeType=image/png;image/jpeg;image/jpg;image/tiff;image/bmp;image/webp;image/gif;image/x-portable-pixmap;image/x-xbitmap;image/x-xpixmap;image/x-tga;image/x-icb;image/x-vst;image/x-vda;image/x-win-bitmap;image/x-pcx;image/x-pict;image/x-portable-anymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-sun-raster;image/x-xcf;image/svg+xml;application/pdf;
-Actions=ocrFile;ocrFileToFile;ocrFileCopy;ocrFileClipboard;ocrFileShow;
+Actions=ocrFile;ocrFileToFile;ocrFileCopy;ocrFileCopyPol;ocrFileClipboard;ocrFileShow;
 
 Name=Tesseract OCR
 Name[pl]=Tesseract OCR
@@ -27,6 +27,12 @@ Name=OCR - rozpoznaj i kopiuj (angielski)
 Name[pl]=OCR - rozpoznaj i kopiuj (angielski)
 Icon=edit-paste
 Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --lang eng --copy
+
+[Desktop Action ocrFileCopyPol]
+Name=OCR - rozpoznaj i kopiuj (polski)
+Name[pl]=OCR - rozpoznaj i kopiuj (polski)
+Icon=edit-paste
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --lang pol --copy
 
 [Desktop Action ocrFileClipboard]
 Name=OCR z obrazu w schowku
