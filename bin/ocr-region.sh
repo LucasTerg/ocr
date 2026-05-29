@@ -68,14 +68,13 @@ echo ""
 echo "Tekst skopiowany do schowka!"
 echo ""
 
-# Pokaż okienko
+rm -f "${RESULT_FILE}.txt"
+
+# Pokaż okienko (po zamknięciu terminal też się zamknie)
 if command -v kdialog &>/dev/null; then
     if [ ${#RESULT_TEXT} -gt 8000 ]; then
-        kdialog --title "OCR - Rozpoznany tekst" --textbox "${RESULT_FILE}.txt" 800 600 2>/dev/null
+        kdialog --title "OCR - Rozpoznany tekst" --textbox /dev/stdin 800 600 <<< "$RESULT_TEXT" 2>/dev/null
     else
         kdialog --title "OCR - Rozpoznany tekst" --msgbox "$RESULT_TEXT" 2>/dev/null
     fi
 fi
-
-rm -f "${RESULT_FILE}.txt"
-read -p "Nacisnij Enter aby zamknac..."
