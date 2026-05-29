@@ -129,9 +129,11 @@ echo "🖱️  Krok 4/5: Instalowanie ServiceMenu dla KDE Dolphin..."
 
 mkdir -p "$SERVICEMENU_DIR"
 
-# Kopiuj pliki .desktop
+# Kopiuj pliki .desktop i ustaw uprawnienia wykonywalne
 cp "$PROJECT_DIR/servicemenu/ocr-tesseract.desktop" "$SERVICEMENU_DIR/"
 cp "$PROJECT_DIR/servicemenu/ocr-tesseract-region.desktop" "$SERVICEMENU_DIR/"
+chmod +x "$SERVICEMENU_DIR/ocr-tesseract.desktop"
+chmod +x "$SERVICEMENU_DIR/ocr-tesseract-region.desktop"
 ok "ServiceMenu zainstalowane w: $SERVICEMENU_DIR"
 
 # --- Krok 5: Instalacja ikony ---
@@ -140,6 +142,7 @@ echo "🎨 Krok 5/5: Instalowanie ikony..."
 
 mkdir -p "$ICON_DIR"
 cp "$PROJECT_DIR/icons/ocr-tesseract.svg" "$ICON_DIR/"
+chmod 644 "$ICON_DIR/ocr-tesseract.svg"
 
 # Aktualizacja cache ikon (jeśli dostępna)
 if command -v gtk-update-icon-cache &>/dev/null; then
