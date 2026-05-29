@@ -390,7 +390,7 @@ case "$MODE" in
             if [ -d "$FILE_PATH" ]; then
                 # To jest katalog - uruchom tryb regionu przez terminal
                 notify "📁 OCR" "To jest katalog. Uruchamiam zaznaczanie obszaru..." "camera-photo"
-                konsole --noclose --hold -e /home/deck/.local/bin/tesseract-ocr.sh --region 2>/dev/null &
+                xterm -e /home/deck/.local/bin/tesseract-ocr.sh --region 2>/dev/null &
                 exit 0
             fi
             error_exit "Plik nie istnieje: $FILE_PATH"
