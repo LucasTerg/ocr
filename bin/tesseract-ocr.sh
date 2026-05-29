@@ -387,11 +387,17 @@ case "$MODE" in
     "file")
         # Tryb pliku
         if [ ! -f "$FILE_PATH" ]; then
+            if [ -d "$FILE_PATH" ]; then
+                # To jest katalog - uruchom tryb regionu przez terminal
+                notify "📁 OCR" "To jest katalog. Uruchamiam zaznaczanie obszaru..." "camera-photo"
+                konsole --hold -e "$SCRIPT_DIR/tesseract-ocr.sh" --region 2>/dev/null &
+                exit 0
+            fi
             error_exit "Plik nie istnieje: $FILE_PATH"
         fi
         
         notify "🖼️ OCR" "Przetwarzanie: $(basename "$FILE_PATH")" "image-x-generic"
-        RESULT_FILE=$(run_ocr "$FILE_PATH" "${TEMP_DIR}/result_$$")
+        RESULT_FILE=$(run_ocr "$FILE_PATH" "${TEMP_DIR}/result_$")
         ;;
         
     "clipboard")
