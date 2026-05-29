@@ -35,8 +35,8 @@ Narzędzie do optycznego rozpoznawania tekstu (OCR) z integracją z menu konteks
 
 ```bash
 # 1. Sklonuj repozytorium
-git clone https://github.com/TWOJA_NAZWA/tesseract-ocr-kde.git
-cd tesseract-ocr-kde
+git clone https://github.com/LucasTerg/ocr.git
+cd ocr
 
 # 2. Uruchom instalator
 chmod +x install.sh
