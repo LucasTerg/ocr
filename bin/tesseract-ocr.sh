@@ -127,6 +127,21 @@ run_ocr() {
     
     # --- Obsługa PDF ---
     if [[ "$mime_type" == "application/pdf" ]]; then
+        # Najpierw spróbuj wyciągnąć tekst bezpośrednio (dla PDF z tekstem cyfrowym)
+        if command -v pdftotext &>/dev/null; then
+            echo "📄 Próba wyciągnięcia tekstu z PDF..." >&2
+            pdftotext -layout "$input_file" "$result_file" 2>/dev/null
+            
+            if [ -s "$result_file" ] && [ "$(head -c 200 "$result_file" | tr -d '[:space:]' | wc -c)" -gt 50 ]; then
+                local line_count=$(wc -l < "$result_file")
+                echo "✅ Wyciągnięto tekst z PDF ($line_count linii)." >&2
+                echo "$result_file"
+                return 0
+            fi
+            echo "📄 PDF nie zawiera tekstu cyfrowego - uruchamiam OCR..." >&2
+        fi
+        
+        # OCR dla PDF (skany, obrazki w PDF)
         echo "📄 Konwertowanie PDF na obrazy..." >&2
         
         local pdf_dir="${TEMP_DIR}/pdf_$"
@@ -136,11 +151,9 @@ run_ocr() {
         if command -v pdftoppm &>/dev/null; then
             pdftoppm -png -r 300 "$input_file" "${pdf_dir}/page" 2>/dev/null
         elif command -v gs &>/dev/null; then
-            # Fallback: ghostscript
             gs -dNOPAUSE -dBATCH -sDEVICE=png16m -r300 \
                 -sOutputFile="${pdf_dir}/page-%d.png" "$input_file" 2>/dev/null
         else
-            # Ostateczny fallback: ImageMagick
             magick -density 300 "$input_file" -quality 100 "${pdf_dir}/page-%d.png" 2>/dev/null
         fi
         
@@ -151,9 +164,8 @@ run_ocr() {
         fi
         
         local page_count=${#page_files[@]}
-        echo "📄 Przetwarzanie $page_count stron(y)..." >&2
+        echo "📄 Przetwarzanie $page_count stron(y) przez OCR..." >&2
         
-        # Czyść plik wyniku
         > "$result_file"
         
         local pn=0
@@ -161,8 +173,7 @@ run_ocr() {
             pn=$((pn + 1))
             echo "   Strona $pn/$page_count..." >&2
             
-            # Preprocessing strony
-            local processed="${TEMP_DIR}/processed_$$${pn}.png"
+            local processed="${TEMP_DIR}/processed_$_${pn}.png"
             magick "$page_file" \
                 -colorspace Gray \
                 -sharpen 0x1 \
@@ -171,13 +182,11 @@ run_ocr() {
                 -resize "200%>" \
                 "$processed" 2>/dev/null || cp "$page_file" "$processed"
             
-            # OCR strony
-            local page_result="${TEMP_DIR}/page_result_$$${pn}"
+            local page_result="${TEMP_DIR}/page_result_$_${pn}"
             tesseract "$processed" "$page_result" -l "$lang" 2>/dev/null || {
                 tesseract "$page_file" "$page_result" -l "$lang" 2>/dev/null || true
             }
             
-            # Dodaj wynik strony do całości
             if [ -f "${page_result}.txt" ]; then
                 if [ "$page_count" -gt 1 ]; then
                     echo "" >> "$result_file"
@@ -197,7 +206,7 @@ run_ocr() {
             error_exit "Nie rozpoznano tekstu z PDF."
         fi
         
-        echo "✅ Przetworzono $page_count stron(y)." >&2
+        echo "✅ Przetworzono $page_count stron(y) przez OCR." >&2
         echo "$result_file"
         return 0
     fi
