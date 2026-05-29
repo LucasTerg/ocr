@@ -73,7 +73,7 @@ Kliknij **prawym przyciskiem myszy** na pulpicie, w folderze, na pustym miejscu 
 **Jak to działa:**
 1. Wybierz **OCR - zaznacz obszar ekranu**
 2. Otworzy się okno terminala (xterm)
-3. Kursor zmieni się w **krzyżyk** – kliknij i przeciągnij, by zaznaczyć prostokąt z tekstem
+3. Kursor zmieni się w **krzyżyk** – zaznacz prostokąt z tekstem
 4. Po puszczeniu myszki tekst zostanie rozpoznany
 5. Otworzy się okienko (**kdialog**) z rozpoznanym tekstem
 6. Tekst jest też automatycznie kopiowany do schowka
