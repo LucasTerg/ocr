@@ -105,27 +105,108 @@ get_clipboard_image() {
 }
 
 run_ocr() {
-    local image_file="$1"
+    local input_file="$1"
     local output_base="$2"
     local lang="${3:-$OCR_LANG}"
     
     # Sprawdź czy plik istnieje i nie jest pusty
-    if [ ! -s "$image_file" ]; then
-        error_exit "Plik obrazu jest pusty lub nie istnieje: $image_file"
+    if [ ! -s "$input_file" ]; then
+        error_exit "Plik jest pusty lub nie istnieje: $input_file"
     fi
     
-    # Sprawdź czy to obraz
+    # Sprawdź MIME type
     local mime_type
-    mime_type=$(file --mime-type -b "$image_file" 2>/dev/null || echo "unknown")
-    if [[ "$mime_type" != image/* ]]; then
-        error_exit "Plik nie jest obrazem (MIME: $mime_type): $image_file"
+    mime_type=$(file --mime-type -b "$input_file" 2>/dev/null || echo "unknown")
+    if [[ "$mime_type" != image/* ]] && [[ "$mime_type" != "application/pdf" ]]; then
+        error_exit "Plik nie jest obrazem ani PDF (MIME: $mime_type): $input_file"
     fi
     
-    # Konwertuj do formatu akceptowalnego przez Tesseract (PNG, 300 DPI)
-    local processed_image="${TEMP_DIR}/processed_$$.png"
+    echo "🔍 Rozpoznawanie tekstu (język: $lang)..." >&2
+    
+    local result_file="${output_base}.txt"
+    
+    # --- Obsługa PDF ---
+    if [[ "$mime_type" == "application/pdf" ]]; then
+        echo "📄 Konwertowanie PDF na obrazy..." >&2
+        
+        local pdf_dir="${TEMP_DIR}/pdf_$"
+        mkdir -p "$pdf_dir"
+        
+        # Konwertuj PDF na PNG przy pomocy pdftoppm (najlepsza jakość)
+        if command -v pdftoppm &>/dev/null; then
+            pdftoppm -png -r 300 "$input_file" "${pdf_dir}/page" 2>/dev/null
+        elif command -v gs &>/dev/null; then
+            # Fallback: ghostscript
+            gs -dNOPAUSE -dBATCH -sDEVICE=png16m -r300 \
+                -sOutputFile="${pdf_dir}/page-%d.png" "$input_file" 2>/dev/null
+        else
+            # Ostateczny fallback: ImageMagick
+            magick -density 300 "$input_file" -quality 100 "${pdf_dir}/page-%d.png" 2>/dev/null
+        fi
+        
+        local page_files=("$pdf_dir"/page*.png)
+        if [ ! -e "${page_files[0]}" ]; then
+            rm -rf "$pdf_dir"
+            error_exit "Nie udało się przekonwertować PDF na obrazy."
+        fi
+        
+        local page_count=${#page_files[@]}
+        echo "📄 Przetwarzanie $page_count stron(y)..." >&2
+        
+        # Czyść plik wyniku
+        > "$result_file"
+        
+        local pn=0
+        for page_file in "${page_files[@]}"; do
+            pn=$((pn + 1))
+            echo "   Strona $pn/$page_count..." >&2
+            
+            # Preprocessing strony
+            local processed="${TEMP_DIR}/processed_$$${pn}.png"
+            magick "$page_file" \
+                -colorspace Gray \
+                -sharpen 0x1 \
+                -normalize \
+                -deskew 40% \
+                -resize "200%>" \
+                "$processed" 2>/dev/null || cp "$page_file" "$processed"
+            
+            # OCR strony
+            local page_result="${TEMP_DIR}/page_result_$$${pn}"
+            tesseract "$processed" "$page_result" -l "$lang" 2>/dev/null || {
+                tesseract "$page_file" "$page_result" -l "$lang" 2>/dev/null || true
+            }
+            
+            # Dodaj wynik strony do całości
+            if [ -f "${page_result}.txt" ]; then
+                if [ "$page_count" -gt 1 ]; then
+                    echo "" >> "$result_file"
+                    echo "--- Strona $pn ---" >> "$result_file"
+                    echo "" >> "$result_file"
+                fi
+                cat "${page_result}.txt" >> "$result_file"
+                rm -f "${page_result}.txt"
+            fi
+            
+            rm -f "$processed" "$page_file"
+        done
+        
+        rm -rf "$pdf_dir"
+        
+        if [ ! -s "$result_file" ]; then
+            error_exit "Nie rozpoznano tekstu z PDF."
+        fi
+        
+        echo "✅ Przetworzono $page_count stron(y)." >&2
+        echo "$result_file"
+        return 0
+    fi
+    
+    # --- Obsługa obrazów (w tym PSD, XCF itp.) ---
+    local processed_image="${TEMP_DIR}/processed_$.png"
     
     # Użyj ImageMagick do preprocessing
-    magick "$image_file" \
+    magick "$input_file" \
         -density 300 \
         -colorspace Gray \
         -sharpen 0x1 \
@@ -134,23 +215,22 @@ run_ocr() {
         -resize "200%>" \
         "$processed_image" 2>/dev/null || {
         # Fallback: prostsza konwersja
-        magick "$image_file" -density 300 "$processed_image" 2>/dev/null || \
-        cp "$image_file" "$processed_image"
+        magick "$input_file" -density 300 "$processed_image" 2>/dev/null || \
+        cp "$input_file" "$processed_image"
     }
     
     # Uruchom Tesseract
-    echo "🔍 Rozpoznawanie tekstu (język: $lang)..." >&2
     tesseract "$processed_image" "$output_base" -l "$lang" 2>/dev/null || {
         # Próbuj bez preprocessingu
         echo "⚠️  Próbuję bez preprocessingu..." >&2
-        tesseract "$image_file" "$output_base" -l "$lang" 2>/dev/null || error_exit "Tesseract nie mógł rozpoznać tekstu."
+        tesseract "$input_file" "$output_base" -l "$lang" 2>/dev/null || error_exit "Tesseract nie mógł rozpoznać tekstu."
     }
     
     # Wyczyść
     rm -f "$processed_image"
     
     # Zwróć ścieżkę do wyniku
-    echo "${output_base}.txt"
+    echo "$result_file"
 }
 
 # --- Główna logika ----------------------------------------------------------
