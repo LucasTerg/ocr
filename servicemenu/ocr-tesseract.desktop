@@ -17,26 +17,26 @@ Icon=camera-photo
 Exec=/home/deck/.local/bin/tesseract-ocr.sh --region
 
 [Desktop Action ocrFile]
-Name=OCR - rozpoznaj tekst (do schowka)
-Name[pl]=OCR - rozpoznaj tekst (do schowka)
+Name=OCR - rozpoznaj tekst (polski+angielski)
+Name[pl]=OCR - rozpoznaj tekst (polski+angielski)
 Icon=edit-paste
 Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --copy
 
 [Desktop Action ocrFileToFile]
-Name=OCR - rozpoznaj tekst i zapisz do pliku...
-Name[pl]=OCR - rozpoznaj tekst i zapisz do pliku...
+Name=OCR - zapisz do pliku...
+Name[pl]=OCR - zapisz do pliku...
 Icon=document-save
 Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --no-copy --output %f.txt
 
 [Desktop Action ocrFileCopy]
-Name=OCR - rozpoznaj i kopiuj (angielski)
-Name[pl]=OCR - rozpoznaj i kopiuj (angielski)
+Name=OCR - tylko angielski
+Name[pl]=OCR - tylko angielski
 Icon=edit-paste
 Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --lang eng --copy
 
 [Desktop Action ocrFileCopyPol]
-Name=OCR - rozpoznaj i kopiuj (polski)
-Name[pl]=OCR - rozpoznaj i kopiuj (polski)
+Name=OCR - tylko polski
+Name[pl]=OCR - tylko polski
 Icon=edit-paste
 Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --lang pol --copy
 
