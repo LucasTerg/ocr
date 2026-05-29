@@ -80,9 +80,9 @@ copy_to_clipboard() {
     if command -v xsel &>/dev/null; then
         echo -n "$text" | xsel --clipboard --input 2>/dev/null && return 0
     fi
-    # KDE way
+    # KDE way (przekaż jako argument, nie przez pipe)
     if command -v qdbus &>/dev/null; then
-        echo -n "$text" | qdbus org.kde.klipper /klipper setClipboardContents 2>/dev/null && return 0
+        qdbus org.kde.klipper /klipper setClipboardContents "$text" 2>/dev/null && return 0
     fi
     return 1
 }

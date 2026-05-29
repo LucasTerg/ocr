@@ -136,9 +136,19 @@ chmod +x "$SERVICEMENU_DIR/ocr-tesseract.desktop"
 chmod +x "$SERVICEMENU_DIR/ocr-tesseract-region.desktop"
 ok "ServiceMenu zainstalowane w: $SERVICEMENU_DIR"
 
-# --- Krok 5: Instalacja ikony ---
+# --- Krok 5: Instalacja launcher'a w menu aplikacji ---
 echo ""
-echo "🎨 Krok 5/5: Instalowanie ikony..."
+echo "🚀 Krok 5/6: Instalowanie launcher'a w menu aplikacji..."
+
+APPLICATIONS_DIR="${HOME}/.local/share/applications"
+mkdir -p "$APPLICATIONS_DIR"
+cp "$PROJECT_DIR/servicemenu/ocr-tesseract-launcher.desktop" "$APPLICATIONS_DIR/ocr-tesseract.desktop"
+chmod +x "$APPLICATIONS_DIR/ocr-tesseract.desktop"
+ok "Launcher zainstalowany w: $APPLICATIONS_DIR/ocr-tesseract.desktop"
+
+# --- Krok 6: Instalacja ikony ---
+echo ""
+echo "🎨 Krok 6/6: Instalowanie ikony..."
 
 mkdir -p "$ICON_DIR"
 cp "$PROJECT_DIR/icons/ocr-tesseract.svg" "$ICON_DIR/"

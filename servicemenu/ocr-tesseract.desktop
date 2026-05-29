@@ -2,13 +2,19 @@
 Type=Service
 ServiceTypes=KonqPopupMenu/Plugin
 MimeType=image/png;image/jpeg;image/jpg;image/tiff;image/bmp;image/webp;image/gif;image/x-portable-pixmap;image/x-xbitmap;image/x-xpixmap;image/x-tga;image/x-icb;image/x-vst;image/x-vda;image/x-win-bitmap;image/x-pcx;image/x-pict;image/x-portable-anymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-sun-raster;image/x-xcf;image/vnd.adobe.photoshop;image/svg+xml;application/pdf;
-Actions=ocrFile;ocrFileToFile;ocrFileCopy;ocrFileCopyPol;ocrFileClipboard;ocrFileShow;
+Actions=ocrRegion;ocrFile;ocrFileToFile;ocrFileCopy;ocrFileCopyPol;ocrFileClipboard;ocrFileShow;
 
 Name=Tesseract OCR
 Name[pl]=Tesseract OCR
 Comment=Recognize text from image using Tesseract OCR
 Comment[pl]=Rozpoznaj tekst z obrazu za pomocą Tesseract OCR
 Icon=ocr-tesseract
+
+[Desktop Action ocrRegion]
+Name=OCR - zaznacz obszar ekranu
+Name[pl]=OCR - zaznacz obszar ekranu
+Icon=camera-photo
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --region
 
 [Desktop Action ocrFile]
 Name=OCR - rozpoznaj tekst (do schowka)

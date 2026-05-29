@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Tesseract OCR - zaznacz obszar
+Name[pl]=Tesseract OCR - zaznacz obszar
+Comment=Select screen region and recognize text using Tesseract OCR
+Comment[pl]=Zaznacz obszar ekranu i rozpoznaj tekst za pomocą Tesseract OCR
+Icon=ocr-tesseract
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --region
+Terminal=false
+Categories=Utility;Graphics;
