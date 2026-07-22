@@ -14,25 +14,25 @@ Icon=ocr-tesseract
 Name=OCR - rozpoznaj tekst (polski+angielski)
 Name[pl]=OCR - rozpoznaj tekst (polski+angielski)
 Icon=edit-paste
-Exec=/home/deck/.local/bin/tesseract-ocr-wrapper.sh %f
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f
 
 [Desktop Action ocrFileToFile]
 Name=OCR - zapisz do pliku...
 Name[pl]=OCR - zapisz do pliku...
 Icon=document-save
-Exec=/home/deck/.local/bin/tesseract-ocr-wrapper.sh %f --no-copy --output %f.txt
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --no-copy --output %f.txt
 
 [Desktop Action ocrFileCopy]
 Name=OCR - tylko angielski
 Name[pl]=OCR - tylko angielski
 Icon=edit-paste
-Exec=/home/deck/.local/bin/tesseract-ocr-wrapper.sh %f --lang eng
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --lang eng
 
 [Desktop Action ocrFileCopyPol]
 Name=OCR - tylko polski
 Name[pl]=OCR - tylko polski
 Icon=edit-paste
-Exec=/home/deck/.local/bin/tesseract-ocr-wrapper.sh %f --lang pol
+Exec=/home/deck/.local/bin/tesseract-ocr.sh --file %f --lang pol
 
 [Desktop Action ocrFileClipboard]
 Name=OCR z obrazu w schowku
@@ -44,4 +44,4 @@ Exec=/home/deck/.local/bin/tesseract-ocr.sh --clipboard
 Name=OCR - otwórz w edytorze
 Name[pl]=OCR - otwórz w edytorze
 Icon=accessories-text-editor
-Exec=/home/deck/.local/bin/tesseract-ocr-wrapper.sh %f --no-copy --output %f.txt && kate %f.txt
+Exec=sh -c '/home/deck/.local/bin/tesseract-ocr.sh --file "$1" --no-copy --output "$1.txt" && kate "$1.txt"' dummy %f
