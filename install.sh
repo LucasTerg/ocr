@@ -58,7 +58,7 @@ else
         exit 1
     fi
     
-    brew install tesseract || error "Nie udało się zainstalować Tesseract przez brew."
+    NONINTERACTIVE=1 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install tesseract || error "Nie udało się zainstalować Tesseract przez brew."
     ok "Tesseract zainstalowany."
 fi
 
@@ -75,7 +75,7 @@ install_lang_if_missing() {
         ok "  Język $lang_name ($lang_code) - dostępny"
     else
         info "  Instalowanie języka $lang_name ($lang_code)..."
-        brew install "tesseract-lang" 2>/dev/null || {
+        NONINTERACTIVE=1 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install "tesseract-lang" 2>/dev/null || {
             # Jeśli pakiet zbiorczy nie działa, pobierz pojedynczy plik
             warn "  Próbuję pobrać plik językowy $lang_code..."
             local tessdata_dir

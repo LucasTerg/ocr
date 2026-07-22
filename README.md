@@ -26,7 +26,7 @@ Narzędzie do optycznego rozpoznawania tekstu (OCR) z integracją z menu konteks
 
 ## 📦 Wymagania
 
-- SteamOS / KDE Plasma 6
+- SteamOS / KDE Plasma 6 (Pełne wsparcie dla **Wayland** i X11, świetnie działa na **Steam Machine 2026** i Steam Deck)
 - Homebrew (Linuxbrew) - [https://brew.sh/](https://brew.sh/)
 - Tesseract (instalowany automatycznie przez `install.sh`)
 - ImageMagick (instalowany automatycznie przez `install.sh`)
@@ -68,16 +68,16 @@ Kliknij **prawym przyciskiem myszy** na pulpicie, w folderze, na pustym miejscu 
 
 | Opcja w menu | Działanie |
 |---|---|
-| **OCR - zaznacz obszar ekranu** | Otwiera terminal z krzyżykiem → zaznacz obszar → tekst w okienku i schowku |
+| **OCR - zaznacz obszar ekranu** | Przyciemnia ekran → zaznacz obszar → zatwierdź → tekst w okienku i schowku |
 
 **Jak to działa:**
 1. Wybierz **OCR - zaznacz obszar ekranu**
-2. Otworzy się okno terminala (xterm)
-3. Kursor zmieni się w **krzyżyk** – zaznacz prostokąt z tekstem
-4. Po puszczeniu myszki tekst zostanie rozpoznany
-5. Otworzy się okienko (**kdialog**) z rozpoznanym tekstem
-6. Tekst jest też automatycznie kopiowany do schowka
-7. Zamknij okienko – terminal zamknie się automatycznie
+2. Ekran zostanie przyciemniony (narzędzie Spectacle)
+3. Zaznacz prostokąt z tekstem, a następnie kliknij przycisk **Przyjmij** (lub wciśnij klawisz Enter / kliknij dwukrotnie)
+4. Po chwili tekst zostanie rozpoznany
+5. Wyskoczy okienko z rozpoznanym tekstem (np. zdjęcie `112.png` obrazuje wynik działania)
+   ![Rozpoznany tekst](112.png)
+6. Wartości z OCR zostaną natychmiast skopiowane do **schowka**, skąd można je łatwo wkleić do notatnika lub przeglądarki (Ctrl+V)
 
 ### Z menu aplikacji
 
@@ -86,7 +86,7 @@ KDE Menu → **Utility** → **Tesseract OCR - zaznacz obszar** → to samo co w
 ### Z terminala
 
 ```bash
-# Zaznacz obszar ekranu (otwiera terminal z krzyżykiem)
+# Zaznacz obszar ekranu (przyciemnia ekran, wsparcie dla Wayland)
 tesseract-ocr.sh --region
 
 # OCR z pliku (dowolny format: PNG, JPG, PSD, XCF, PDF...)
@@ -128,16 +128,14 @@ Dostępne języki: https://github.com/tesseract-ocr/tessdata
 
 ## 🗑️ Odinstalowanie
 
+Najszybciej użyć gotowego skryptu z repozytorium:
 ```bash
-rm -f ~/.local/bin/tesseract-ocr.sh
-rm -f ~/.local/bin/ocr-region.sh
-rm -f ~/.local/bin/tesseract-ocr-wrapper.sh
-rm -f ~/.local/share/kio/servicemenus/ocr-tesseract*.desktop
-rm -f ~/.local/share/applications/ocr-tesseract.desktop
-rm -f ~/.local/share/icons/hicolor/scalable/apps/ocr-tesseract.svg
+./uninstall.sh
+```
 
-# Opcjonalnie: usuń Tesseract
-brew uninstall tesseract
+Spowoduje to usunięcie wszystkich skrótów, ikon i akcji w menu systemowym. Jeśli chcesz dodatkowo usunąć samo narzędzie OCR zainstalowane przez brew, wpisz:
+```bash
+brew uninstall tesseract tesseract-lang
 ```
 
 ## 📁 Struktura projektu
@@ -161,7 +159,7 @@ tesseract-ocr-kde/
 ## 🔧 Jak to działa
 
 1. **Dla plików:** ImageMagick konwertuje plik do PNG (dla PSD/XCF/PDF wyciąga pierwszą warstwę/stronę), obraz jest ulepszany (skala szarości, wyostrzenie, normalizacja), Tesseract OCR rozpoznaje tekst, wynik trafia do schowka
-2. **Dla obszaru:** `import` (ImageMagick) pokazuje krzyżyk do zaznaczenia, robi zrzut, OCR, wynik w okienku **kdialog** i w schowku
+2. **Dla obszaru:** `spectacle` pozwala zaznaczyć obszar ekranu (pełna zgodność z Wayland), robi zrzut, OCR wyciąga z niego treść, a wynik ląduje w schowku i wyświetla się w okienku **kdialog**
 3. **Dla PDF:** najpierw próbuje wyciągnąć tekst przez `pdftotext` (dla PDF z tekstem cyfrowym), jeśli nie ma tekstu - konwertuje strony na obrazy i robi OCR
 
 ## 📝 Licencja

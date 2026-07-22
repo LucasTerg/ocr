@@ -14,4 +14,4 @@ Icon=ocr-tesseract
 Name=OCR - zaznacz obszar ekranu
 Name[pl]=OCR - zaznacz obszar ekranu
 Icon=camera-photo
-Exec=xterm -e /home/deck/.local/bin/ocr-region.sh
+Exec=/home/deck/.local/bin/ocr-region.sh

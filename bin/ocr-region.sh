@@ -21,16 +21,14 @@ REGION_FILE="$TEMP_DIR/region_$$.png"
 echo "Zaznacz obszar myszka (przeciagnij prostokat)..."
 echo ""
 
-# Użyj import z ImageMagick - pokazuje krzyżyk
-if ! import "$REGION_FILE" 2>/dev/null; then
-    echo "Nie wybrano regionu."
-    read -p "Nacisnij Enter aby zamknac..."
+# Użyj spectacle (domyślne narzędzie KDE, działa na Wayland i X11)
+if ! spectacle -r -b -n -o "$REGION_FILE" 2>/dev/null; then
+    command -v kdialog &>/dev/null && kdialog --error "Nie wybrano regionu." 2>/dev/null
     exit 1
 fi
 
 if [ ! -s "$REGION_FILE" ]; then
-    echo "Zrzut jest pusty."
-    read -p "Nacisnij Enter aby zamknac..."
+    command -v kdialog &>/dev/null && kdialog --error "Zrzut jest pusty." 2>/dev/null
     exit 1
 fi
 
@@ -47,8 +45,7 @@ tesseract "$PROCESSED" "$RESULT_FILE" -l pol+eng 2>/dev/null || tesseract "$REGI
 rm -f "$PROCESSED" "$REGION_FILE"
 
 if [ ! -f "${RESULT_FILE}.txt" ] || [ ! -s "${RESULT_FILE}.txt" ]; then
-    echo "Nie rozpoznano tekstu."
-    read -p "Nacisnij Enter aby zamknac..."
+    command -v kdialog &>/dev/null && kdialog --error "Nie rozpoznano tekstu." 2>/dev/null
     exit 1
 fi
 
